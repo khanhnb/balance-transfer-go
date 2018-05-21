@@ -142,8 +142,11 @@ channels:
         eventSource: true
       peer1.org1.example.com:
         endorsingPeer: false
+        chaincodeQuery: false
       peer0.org2.example.com:
+        endorsingPeer: true
       peer1.org2.example.com:
+        endorsingPeer: true
     # [Optional]. The application can use these options to perform channel operations like retrieving channel
     # config etc.
     policies:
@@ -287,10 +290,10 @@ peers:
   peer0.org1.example.com:
     # this URL is used to send endorsement and query requests
     #url: peer0.org1.example.com:7051
-    url: localhost:7051
+    url: peer0.org1.example.com:7051
     # eventUrl is only needed when using eventhub (default is delivery service)
     #eventUrl: peer0.org1.example.com:7053
-    eventUrl: localhost:7053
+    eventUrl: peer0.org1.example.com:7053
 
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
@@ -311,8 +314,8 @@ peers:
   peer1.org1.example.com:
     # url: peer1.org1.example.com:7051
     # eventUrl: peer1.org1.example.com:7053
-    url: localhost:8051
-    eventUrl: localhost:8053
+    url: peer1.org1.example.com:8051
+    eventUrl: peer1.org1.example.com:8053
     grpcOptions:
       ssl-target-name-override: peer1.org1.example.com
       keep-alive-time: 0s
@@ -327,8 +330,8 @@ peers:
   peer0.org2.example.com:
     # url: peer1.org1.example.com:7051
     # eventUrl: peer1.org1.example.com:7053
-    url: localhost:9051
-    eventUrl: localhost:9053
+    url: peer0.org2.example.com:9051
+    eventUrl: peer0.org2.example.com:9053
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
       keep-alive-time: 0s
@@ -343,8 +346,8 @@ peers:
   peer1.org2.example.com:
     # url: peer1.org1.example.com:7051
     # eventUrl: peer1.org1.example.com:7053
-    url: localhost:10051
-    eventUrl: localhost:10053
+    url: peer1.org2.example.com:10051
+    eventUrl: peer1.org2.example.com:10053
     grpcOptions:
       ssl-target-name-override: peer1.org2.example.com
       keep-alive-time: 0s
@@ -364,16 +367,16 @@ peers:
 certificateAuthorities:
   ca.org1.example.com:
     #url: https://ca.org1.example.com:7054
-    url: https://localhost:7054
-    # tlsCACerts:
+    url: https://ca.org1.example.com:7054
+    tlsCACerts:
     #   # Comma-Separated list of paths
-    #   path: ${GOPATH}/src/github.com/hyperledger/fabric-sdk-go/test/fixtures/fabricca/tls/certs/ca_root.pem
+      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
     #   # Client key and cert for SSL handshake with Fabric CA
-    #   client:
-    #     key:
-    #       path: ${GOPATH}/src/github.com/hyperledger/fabric-sdk-go/test/fixtures/fabricca/tls/certs/client/client_fabric_client-key.pem
-    #     cert:
-    #       path: ${GOPATH}/src/github.com/hyperledger/fabric-sdk-go/test/fixtures/fabricca/tls/certs/client/client_fabric_client.pem
+    # client:
+    #   key:
+    #     path: ${GOPATH}/src/github.com/hyperledger/fabric-sdk-go/test/fixtures/fabricca/tls/certs/client/client_fabric_client-key.pem
+    #   cert:
+    #     path: ${GOPATH}/src/github.com/hyperledger/fabric-sdk-go/test/fixtures/fabricca/tls/certs/client/client_fabric_client.pem
 
     # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
     # needed to enroll and invoke new users.
@@ -384,10 +387,10 @@ certificateAuthorities:
     caName: ca.org1.example.com
   ca.org2.example.com:
     #url: https://ca.org2.example.com:8054
-    url: https://localhost:8054
-    # tlsCACerts:
+    url: https://ca.org2.example.com:8054
+    tlsCACerts:
     #   # Comma-Separated list of paths
-    #   path: ${GOPATH}/src/github.com/hyperledger/fabric-sdk-go/test/fixtures/fabricca/tls/certs/ca_root.pem
+      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
     #   # Client key and cert for SSL handshake with Fabric CA
     #   client:
     #     key:
