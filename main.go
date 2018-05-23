@@ -83,6 +83,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		tokenString, err := token.SignedString(secretKey)
 		fmt.Println(tokenString, err)
 		getRegisteredUser(username, orgName)
+		w.Write([]byte(getRegisteredUser(username, orgName)))
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}

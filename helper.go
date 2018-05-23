@@ -40,17 +40,15 @@ func getRegisteredUser(username, orgName string) string {
 		// See https://github.com/hyperledger/fabric-ca/blob/release/cmd/fabric-ca-server/config.go
 		Affiliation: "org1",
 	})
-	if err != nil {
-		log.Fatalf(":::::: %v\n", err)
+	if err == nil {
+		// Enroll the new user
+		err = mspClient.Enroll(username, msp.WithSecret(enrollmentSecret))
+		log.Printf("secret: %s", enrollmentSecret)
+		if err != nil {
+			log.Printf("enroll %s failed: %v", username, err)
+		}
 	}
-
-	// Enroll the new user
-	err = mspClient.Enroll(username, msp.WithSecret(enrollmentSecret))
-	log.Printf("secret: %s", enrollmentSecret)
-	if err != nil {
-		log.Printf("enroll %s failed: %v", username, err)
-	}
-	return ""
+	return err.Error()
 }
 
 func getRegistrarEnrollmentCredentials(ctxProvider context.ClientProvider) (string, string) {
