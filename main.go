@@ -38,7 +38,7 @@ func main() {
 	r.HandleFunc("/", helloRest).Methods("GET")
 	r.HandleFunc("/users", login).Methods("POST")
 	r.Handle("/channels", authMiddleware(http.HandlerFunc(createChannel))).Methods("POST")
-	http.ListenAndServe(":8000", handlers.LoggingHandler(os.Stdout, r))
+	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
 
 }
 
