@@ -11,7 +11,7 @@ var Chaincode = class {
 
   // Initialize the chaincode
   async Init(stub) {
-    console.info('========= example_cc Init =========');
+    console.info('========= example02 Init =========');
     let ret = stub.getFunctionAndParameters();
     console.info(ret);
     let args = ret.params;
@@ -47,11 +47,9 @@ var Chaincode = class {
     console.info(ret);
     let method = this[ret.fcn];
     if (!method) {
-      console.error('no method of name:' + ret.fcn + ' found');
-      return shim.error('no method of name:' + ret.fcn + ' found');
+      console.log('no method of name:' + ret.fcn + ' found');
+      return shim.success();
     }
-
-    console.info('\nCalling method : ' + ret.fcn);
     try {
       let payload = await method(stub, ret.params);
       return shim.success(payload);
@@ -61,7 +59,7 @@ var Chaincode = class {
     }
   }
 
-  async move(stub, args) {
+  async invoke(stub, args) {
     if (args.length != 3) {
       throw new Error('Incorrect number of arguments. Expecting 3');
     }

@@ -67,7 +67,7 @@ client:
 
   # Root of the MSP directories with keys and certs.
   cryptoconfig:
-    path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config
+    path: artifacts/channel/crypto-config
 
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
   # are implementation specific
@@ -280,7 +280,7 @@ orderers:
 
     tlsCACerts:
       # Certificate location absolute path
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+      path: artifacts/channel/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 
 #
 # List of peers to send various requests to, including endorsement, query
@@ -309,7 +309,7 @@ peers:
 
     tlsCACerts:
       # Certificate location absolute path
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+      path: artifacts/channel/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
 
   peer1.org1.example.com:
     # url: peer1.org1.example.com:7051
@@ -324,7 +324,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+      path: artifacts/channel/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
 
 
   peer0.org2.example.com:
@@ -340,7 +340,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+      path: artifacts/channel/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
 
 
   peer1.org2.example.com:
@@ -356,7 +356,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem            
+      path: artifacts/channel/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem            
 
   
 #
@@ -370,7 +370,7 @@ certificateAuthorities:
     url: https://ca.org1.example.com:7054
     tlsCACerts:
     #   # Comma-Separated list of paths
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
+      path: artifacts/channel/crypto-config/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
     #   # Client key and cert for SSL handshake with Fabric CA
     # client:
     #   key:
@@ -390,7 +390,7 @@ certificateAuthorities:
     url: https://ca.org2.example.com:8054
     tlsCACerts:
     #   # Comma-Separated list of paths
-      path: /Users/clark/Desktop/fabric-samples/balance-transfer/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
+      path: artifacts/channel/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
     #   # Client key and cert for SSL handshake with Fabric CA
     #   client:
     #     key:

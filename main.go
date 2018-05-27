@@ -1,73 +1,75 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/balance-transfer-go/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
-	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
-	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
-	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 )
 
-const (
-	channelID        = "mychannel"
-	orgName          = "Org1"
-	orgAdmin         = "Admin"
-	ordererOrgName   = "ordererorg"
-	ccID             = "mycc"
-	configFileName   = "config.yaml"
-	username         = "User1"
-	secret           = "thisismysecret"
-	identityTypeUser = "user"
-)
-
-var secretKey = []byte(secret)
-var sdk *fabsdk.FabricSDK
-var client *channel.Client
+var hfc utils.FabricSetup
 
 func main() {
-	sdk = setupSDK(configFileName)
-	// client = getClient(sdk, channelID, username, orgName)
+
+	hfc = utils.FabricSetup{
+		AdminUser:         "Admin",
+		OrdererOrgName:    "ordererorg",
+		ConfigFileName:    "config.yaml",
+		Secret:            []byte("thisismysecret"),
+		IdentityTypeUser:  "user",
+		RegistrarUsername: "admin",
+		RegistrarPassword: "adminpw",
+	}
+	hfc.Init()
+
 	r := mux.NewRouter()
-	r.HandleFunc("/", helloRest).Methods("GET")
 	r.HandleFunc("/users", login).Methods("POST")
-	r.Handle("/channels", authMiddleware(http.HandlerFunc(createChannel))).Methods("POST")
+	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(queryCC))).Methods("GET")
+	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(invokeCC))).Methods("POST")
 	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
-
-}
-
-func createChannel(w http.ResponseWriter, r *http.Request) {
-
 }
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("authorization")
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		if tokenString != "" {
+			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				}
+				return hfc.Secret, nil
+			})
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				r.Header.Add("username", claims["username"].(string))
+				r.Header.Add("orgName", claims["orgName"].(string))
+				next.ServeHTTP(w, r)
+			} else {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte(err.Error()))
 			}
-			return secretKey, nil
-		})
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			r.Header.Add("username", claims["username"].(string))
-			r.Header.Add("orgName", claims["orgName"].(string))
-			next.ServeHTTP(w, r)
-
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			//w.Write([]byte("require "))
 		}
 	})
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
+	log.Print("==================== LOGIN ==================")
+	// define response
+	type Response struct {
+		Success bool
+		Message string
+		Token   string
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -80,52 +82,57 @@ func login(w http.ResponseWriter, r *http.Request) {
 			"orgName":  orgName,
 			"exp":      time.Now().Unix() + 36000,
 		})
-		tokenString, err := token.SignedString(secretKey)
+		tokenString, err := token.SignedString(hfc.Secret)
 		fmt.Println(tokenString, err)
-		getRegisteredUser(username, orgName)
-		w.Write([]byte(getRegisteredUser(username, orgName)))
+		message, success := utils.GetRegisteredUser(username, orgName, hfc.IdentityTypeUser, hfc.MspClient)
+		res := Response{
+			Success: success,
+			Message: message,
+		}
+
+		if success {
+			res.Token = tokenString
+		}
+		out, err := json.Marshal(res)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func helloRest(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World\n")
+func queryCC(w http.ResponseWriter, r *http.Request) {
+	log.Print("==================== QUERY BY CHAINCODE ==================")
+
+	type args struct {
+		array []string
+	}
+
+	username := r.Header.Get("username")
+	orgName := r.Header.Get("orgName")
+	vars := mux.Vars(r)
+	fcn := r.URL.Query().Get("fcn")
+	tmp := args{}
+	json.Unmarshal([]byte(r.URL.Query().Get("args")), &tmp.array)
+
+	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
+	res := utils.QueryCC(client, vars["chaincodeName"], fcn, utils.GetArgs(tmp.array))
+	w.Write(res)
 }
 
-func setupSDK(configFileName string) *fabsdk.FabricSDK {
-	var config = config.FromFile(configFileName)
-	sdk, err := fabsdk.New(config)
-	if err != nil {
-		fmt.Printf("failed to create new SDK: %s\n", err)
+func invokeCC(w http.ResponseWriter, r *http.Request) {
+	log.Print("==================== INVOKE ON CHAINCODE ==================")
+	type invokeBody struct {
+		Fcn  string
+		Args []string
 	}
-	return sdk
-}
-
-func getClient(sdk *fabsdk.FabricSDK, channelName string, userName string, orgName string) *channel.Client {
-	clientChannelContext := sdk.ChannelContext(channelName, fabsdk.WithUser(userName), fabsdk.WithOrg(orgName))
-	client, err := channel.New(clientChannelContext)
-	if err != nil {
-		fmt.Printf("failed to create new channel client: %s\n", err)
-	}
-	return client
-}
-
-func queryCC(client *channel.Client) []byte {
-	response, err := client.Query(channel.Request{ChaincodeID: ccID, Fcn: "query", Args: [][]byte{[]byte("a")}},
-		channel.WithRetry(retry.DefaultChannelOpts))
-	if err != nil {
-		fmt.Printf("failed to query funds: %s\n", err)
-	}
-	return response.Payload
-}
-
-func executeCC(client *channel.Client) []byte {
-	response, err := client.Execute(channel.Request{ChaincodeID: ccID, Fcn: "invoke", Args: [][]byte{[]byte("a"), []byte("b"), []byte("10")}},
-		channel.WithRetry(retry.DefaultChannelOpts))
-	if err != nil {
-		fmt.Printf("failed to invoke funds: %s\n", err)
-	}
-	fmt.Println(response)
-	return response.Payload
+	vars := mux.Vars(r)
+	username := r.Header.Get("username")
+	orgName := r.Header.Get("orgName")
+	decoder := json.NewDecoder(r.Body)
+	body := invokeBody{}
+	decoder.Decode(&body)
+	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
+	res := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args))
+	w.Write(res)
 }
