@@ -10,9 +10,9 @@ A sample go app to demonstrate **__fabric-client__** & **__fabric-ca-client__** 
 * **Golang**
 * [Download Docker images](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#binaries)
 ```
-go get github.com/balance-transfer-go
-cd $GOPATH/src/github.com/balance-transfer-go
-sudo echo "127.0.0.1 ca.org1.example.com ca.org2.example.com orderer.example.com peer0.org1.example.com peer1.org1.example.com peer0.org2.example.com peer1.org2.example.com" >> /etc/hosts
+cd $GOPATH/src/github.com
+git clone https://github.com/khanhnb/balance-transfer-go.git
+sudo -- sh -c 'echo "127.0.0.1 ca.org1.example.com ca.org2.example.com orderer.example.com peer0.org1.example.com peer1.org1.example.com peer0.org2.example.com peer1.org2.example.com" >> /etc/hosts'
 ```
 
 
@@ -33,11 +33,14 @@ Once you have completed the above setup, you will have provisioned a local netwo
 * Launch the network using docker-compose
 
 ```
+cd $GOPATH/src/github.com/balance-transfer-go
 docker-compose -f artifacts/docker-compose.yaml up -d
+# view logs of setup container
+docker logs -f cli
 ```
 ##### Terminal Window 2
 
-* Install go REST Service
+* Run go REST Service
 
 ```
 go run main.go
