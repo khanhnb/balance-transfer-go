@@ -6,12 +6,16 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/balance-transfer-go/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/ledger"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+	putils "github.com/hyperledger/fabric/protos/utils"
 )
 
 var hfc utils.FabricSetup
@@ -26,6 +30,7 @@ func main() {
 		IdentityTypeUser:  "user",
 		RegistrarUsername: "admin",
 		RegistrarPassword: "adminpw",
+		ChannelID:         "mychannel",
 	}
 	hfc.Init()
 
@@ -33,6 +38,8 @@ func main() {
 	r.HandleFunc("/users", login).Methods("POST")
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(queryCC))).Methods("GET")
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(invokeCC))).Methods("POST")
+	//r.Handle("/channels/{channelName}/blocks/{blockID}", authMiddleware(http.HandlerFunc(getBlockByNumber))).Methods("GET")
+	r.HandleFunc("/channels/{channelName}/blocks/{blockID}", getBlockByNumber).Methods("GET")
 	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
 }
 
@@ -135,4 +142,40 @@ func invokeCC(w http.ResponseWriter, r *http.Request) {
 	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
 	res := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args))
 	w.Write(res)
+}
+
+func getBlockByNumber(w http.ResponseWriter, r *http.Request) {
+	log.Print("==================== GET BLOCK BY NUMBER ==================")
+	vars := mux.Vars(r)
+	// test
+	org1AdminChannelContext := hfc.Sdk.ChannelContext(hfc.ChannelID, fabsdk.WithUser("Admin"), fabsdk.WithOrg("Org1"))
+	// ledger client
+
+	client, err := ledger.New(org1AdminChannelContext)
+
+	if err != nil {
+		log.Fatalf("Failed to create new resource management client: %s", err)
+	}
+	blockID, _ := strconv.ParseUint(vars["blockID"], 10, 64)
+	block, err := client.QueryBlock(blockID)
+	if err != nil {
+		log.Fatalf("QueryBlockByHash return error: %s", err)
+	}
+	if block.Data == nil {
+		log.Fatal("QueryBlockByHash block data is nil")
+	}
+
+	for txIndex, data := range block.Data.Data {
+		fmt.Printf("txIndex: %d\n", txIndex)
+		envelope, err := putils.GetEnvelopeFromBlock(data)
+		if err != nil {
+			log.Printf("Error getting envelope: %s", err)
+		}
+		payload, err := putils.GetPayload(envelope)
+
+		if err != nil {
+			log.Printf("Error getting payload from envelope: %s", err)
+		}
+	}
+
 }

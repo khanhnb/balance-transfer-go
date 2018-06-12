@@ -24,6 +24,7 @@ type FabricSetup struct {
 	RegistrarUsername string
 	RegistrarPassword string
 	MspClient         *clientMSP.Client
+	ChannelID         string
 }
 
 // Init reads config file, setup client, CA

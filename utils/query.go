@@ -16,3 +16,7 @@ func QueryCC(client *channel.Client, ccID, fcn string, args [][]byte) []byte {
 	}
 	return response.Payload
 }
+
+func QueryBlockByNumber() {
+
+}
