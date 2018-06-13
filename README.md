@@ -97,7 +97,7 @@ curl -s -X GET \
 
 ```
 curl -s -X GET \
-  "http://localhost:4000/channels/mychannel/blocks/1?peer=peer0.org1.example.com" \
+  "http://localhost:4000/channels/mychannel/blocks/1" \
   -H "authorization: <put JSON Web Token here>" \
   -H "content-type: application/json"
 ```

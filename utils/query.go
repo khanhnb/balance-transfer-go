@@ -2,8 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/ledger"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
 )
 
@@ -17,6 +19,14 @@ func QueryCC(client *channel.Client, ccID, fcn string, args [][]byte) []byte {
 	return response.Payload
 }
 
-func QueryBlockByNumber() {
-
+// QueryBlockByNumber query block by block number
+func QueryBlockByNumber(client *ledger.Client, blockID uint64) []byte {
+	block, err := client.QueryBlock(blockID)
+	if err != nil {
+		log.Fatalf("QueryBlockByHash return error: %s", err)
+	}
+	if block.Data == nil {
+		log.Fatal("QueryBlockByHash block data is nil")
+	}
+	return processBlock(block)
 }

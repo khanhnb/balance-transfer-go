@@ -7,17 +7,16 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"time"
 
 	"github.com/golang/protobuf/proto"
-	ledgerUtil "github.com/hyperledger/fabric/core/ledger/util"
-	cb "github.com/hyperledger/fabric/protos/common"
-	"github.com/hyperledger/fabric/protos/ledger/rwset"
-	"github.com/hyperledger/fabric/protos/ledger/rwset/kvrwset"
-	pbmsp "github.com/hyperledger/fabric/protos/msp"
-	ab "github.com/hyperledger/fabric/protos/orderer"
-	pb "github.com/hyperledger/fabric/protos/peer"
-	"github.com/hyperledger/fabric/protos/utils"
+	ledgerUtil "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/core/ledger/util"
+	cb "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/common"
+	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/ledger/rwset"
+	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/ledger/rwset/kvrwset"
+	pbmsp "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/msp"
+	ab "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/orderer"
+	pb "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/utils"
 )
 
 func prettyprint(b []byte) ([]byte, error) {
@@ -152,15 +151,12 @@ func addTransactionValidation(block *Block, tran *Transaction, txIdx int) error 
 	return fmt.Errorf("Invalid index or transaction filler. Index: %d", txIdx)
 }
 
-func processBlock(blockEvent *pb.Event_Block) string {
-	var block *cb.Block
+// ProcessBlock parse block to json format
+func processBlock(block *cb.Block) []byte {
 	var localBlock Block
-	var now time.Time
 
-	block = blockEvent.Block
 	localBlock.Header = block.Header
 	localBlock.TransactionFilter = ledgerUtil.NewTxValidationFlags(len(block.Data.Data))
-	now = time.Now()
 
 	// process block metadata before data
 	localBlock.BlockCreatorSignature, _ = getSignatureHeaderFromBlockMetadata(block, cb.BlockMetadataIndex_SIGNATURES)
@@ -203,13 +199,6 @@ func processBlock(blockEvent *pb.Event_Block) string {
 		localChannelHeader := &ChannelHeader{}
 		copyChannelHeaderToLocalChannelHeader(localChannelHeader, chHeader, headerExtension)
 
-		// Performance measurement code starts
-		subTime := time.Unix(localChannelHeader.Timestamp.Seconds, int64(localChannelHeader.Timestamp.Nanos)).UTC()
-
-		validationCode := localBlock.TransactionFilter[txIndex]
-		validationCodeName := pb.TxValidationCode_name[int32(validationCode)]
-
-		// Performance measurement code ends
 		localTransaction.ChannelHeader = localChannelHeader
 		localSignatureHeader := &cb.SignatureHeader{}
 		if err := proto.Unmarshal(payload.Header.SignatureHeader, localSignatureHeader); err != nil {
@@ -286,5 +275,5 @@ func processBlock(blockEvent *pb.Event_Block) string {
 	}
 	blockJSON, _ := json.Marshal(localBlock)
 	blockJSONString, _ := prettyprint(blockJSON)
-	return string(blockJSONString)
+	return blockJSONString
 }
