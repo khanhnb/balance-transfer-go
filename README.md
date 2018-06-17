@@ -102,7 +102,14 @@ curl -s -X GET \
   -H "content-type: application/json"
 ```
 
-### Query Transaction by TransactionID (updating)
+### Query Transaction by TransactionID
+
+```
+curl -s -X GET http://localhost:4000/channels/mychannel/transactions/<put transaction id here> \
+  -H "authorization: <put JSON Web Token here>" \
+  -H "content-type: application/json"
+```
+**NOTE**: The transaction id can be from any previous invoke transaction, see results of the invoke request, will look something like `8a95b1794cb17e7772164c3f1292f8410fcfdc1943955a35c9764a21fcd1d1b3`.
 
 
 ### Query ChainInfo (updating)

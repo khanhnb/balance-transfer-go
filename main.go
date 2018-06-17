@@ -38,6 +38,8 @@ func main() {
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(queryCC))).Methods("GET")
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(invokeCC))).Methods("POST")
 	r.Handle("/channels/{channelName}/blocks/{blockID}", authMiddleware(http.HandlerFunc(getBlockByNumber))).Methods("GET")
+	r.Handle("/channels/{channelName}/transactions/{transactionID}", authMiddleware(http.HandlerFunc(getTransactionByID))).Methods("GET")
+	//r.HandleFunc("/channels/{channelName}/transactions/{transactionID}", getTransactionByID).Methods("GET")
 	//r.HandleFunc("/channels/{channelName}/blocks/{blockID}", getBlockByNumber).Methods("GET")
 	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
 }
@@ -72,7 +74,7 @@ func authMiddleware(next http.Handler) http.Handler {
 func login(w http.ResponseWriter, r *http.Request) {
 	log.Print("==================== LOGIN ==================")
 	// define response
-	type Response struct {
+	type response struct {
 		Success bool
 		Message string
 		Token   string
@@ -93,7 +95,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		tokenString, err := token.SignedString(hfc.Secret)
 		fmt.Println(tokenString, err)
 		message, success := utils.GetRegisteredUser(username, orgName, hfc.IdentityTypeUser, hfc.MspClient)
-		res := Response{
+		res := response{
 			Success: success,
 			Message: message,
 		}
@@ -161,7 +163,7 @@ func getBlockByNumber(w http.ResponseWriter, r *http.Request) {
 	orgName := r.Header.Get("orgName")
 	blockID, _ := strconv.ParseUint(vars["blockID"], 10, 64)
 
-	channelContext := hfc.Sdk.ChannelContext(hfc.ChannelID, fabsdk.WithUser(username), fabsdk.WithOrg(orgName))
+	channelContext := hfc.Sdk.ChannelContext(vars["channelName"], fabsdk.WithUser(username), fabsdk.WithOrg(orgName))
 	// ledger client
 	client, err := ledger.New(channelContext)
 
@@ -170,4 +172,18 @@ func getBlockByNumber(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(utils.QueryBlockByNumber(client, blockID))
+}
+
+func getTransactionByID(w http.ResponseWriter, r *http.Request) {
+	log.Print("================ GET TRANSACTION BY TRANSACTION_ID ======================")
+	vars := mux.Vars(r)
+	username := r.Header.Get("username")
+	orgName := r.Header.Get("orgName")
+	channelContext := hfc.Sdk.ChannelContext(vars["channelName"], fabsdk.WithUser(username), fabsdk.WithOrg(orgName))
+	client, err := ledger.New(channelContext)
+	if err != nil {
+		log.Printf("Failed to create new ledger client: %s", err)
+	}
+	res := utils.QueryTransactionByID(client, vars["transactionID"])
+	w.Write(res)
 }
