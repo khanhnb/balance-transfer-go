@@ -65,7 +65,6 @@ func authMiddleware(next http.Handler) http.Handler {
 
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
-			//w.Write([]byte("require "))
 		}
 	})
 }
@@ -135,6 +134,9 @@ func invokeCC(w http.ResponseWriter, r *http.Request) {
 		Fcn  string
 		Args []string
 	}
+	type response struct {
+		TxID string
+	}
 	vars := mux.Vars(r)
 	username := r.Header.Get("username")
 	orgName := r.Header.Get("orgName")
@@ -142,8 +144,14 @@ func invokeCC(w http.ResponseWriter, r *http.Request) {
 	body := invokeBody{}
 	decoder.Decode(&body)
 	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
-	res := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args))
-	w.Write(res)
+	txid := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args))
+	res := response{}
+	res.TxID = txid
+	out, err := json.Marshal(res)
+	if err != nil {
+		log.Printf("Marshal res error: %s", err.Error())
+	}
+	w.Write(out)
 }
 
 func getBlockByNumber(w http.ResponseWriter, r *http.Request) {

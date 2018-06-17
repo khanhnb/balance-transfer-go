@@ -8,12 +8,11 @@ import (
 )
 
 // ExecuteCC invoke chaincode
-func ExecuteCC(client *channel.Client, ccID, fcn string, args [][]byte) []byte {
+func ExecuteCC(client *channel.Client, ccID, fcn string, args [][]byte) string {
 	response, err := client.Execute(channel.Request{ChaincodeID: ccID, Fcn: fcn, Args: args},
 		channel.WithRetry(retry.DefaultChannelOpts))
 	if err != nil {
 		fmt.Printf("failed to invoke funds: %s\n", err)
 	}
-	fmt.Println(response)
-	return response.Payload
+	return string(response.TransactionID)
 }
