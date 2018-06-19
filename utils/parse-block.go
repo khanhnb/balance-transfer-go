@@ -19,7 +19,8 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/utils"
 )
 
-func prettyprint(b []byte) ([]byte, error) {
+// Prettyprint print json
+func Prettyprint(b []byte) ([]byte, error) {
 	var out bytes.Buffer
 	err := json.Indent(&out, b, "", "  ")
 	return out.Bytes(), err
@@ -273,7 +274,7 @@ func processBlock(block *cb.Block) []byte {
 		localBlock.Transactions = append(localBlock.Transactions, localTransaction)
 	}
 	blockJSON, _ := json.Marshal(localBlock)
-	blockJSONString, _ := prettyprint(blockJSON)
+	blockJSONString, _ := Prettyprint(blockJSON)
 	return blockJSONString
 }
 

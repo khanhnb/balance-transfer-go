@@ -39,6 +39,8 @@ func main() {
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(invokeCC))).Methods("POST")
 	r.Handle("/channels/{channelName}/blocks/{blockID}", authMiddleware(http.HandlerFunc(getBlockByNumber))).Methods("GET")
 	r.Handle("/channels/{channelName}/transactions/{transactionID}", authMiddleware(http.HandlerFunc(getTransactionByID))).Methods("GET")
+	r.Handle("/channels/{channelName}", authMiddleware(http.HandlerFunc(getChainInfo))).Methods("GET")
+	//r.HandleFunc("/channels/{channelName}", getChainInfo).Methods("GET")
 	//r.HandleFunc("/channels/{channelName}/transactions/{transactionID}", getTransactionByID).Methods("GET")
 	//r.HandleFunc("/channels/{channelName}/blocks/{blockID}", getBlockByNumber).Methods("GET")
 	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
@@ -126,15 +128,16 @@ func queryCC(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(r.URL.Query().Get("args")), &tmp.array)
 
 	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
-	res := utils.QueryCC(client, vars["chaincodeName"], fcn, utils.GetArgs(tmp.array))
+	res := utils.QueryCC(client, vars["chaincodeName"], fcn, utils.GetArgs(tmp.array), r.URL.Query().Get("peer"))
 	w.Write(res)
 }
 
 func invokeCC(w http.ResponseWriter, r *http.Request) {
 	log.Print("==================== INVOKE ON CHAINCODE ==================")
 	type invokeBody struct {
-		Fcn  string
-		Args []string
+		Peers []string
+		Fcn   string
+		Args  []string
 	}
 	type response struct {
 		TxID string
@@ -146,7 +149,7 @@ func invokeCC(w http.ResponseWriter, r *http.Request) {
 	body := invokeBody{}
 	decoder.Decode(&body)
 	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
-	txid := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args))
+	txid := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args), body.Peers)
 	res := response{}
 	res.TxID = txid
 	out, err := json.Marshal(res)
@@ -171,7 +174,7 @@ func getBlockByNumber(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to create new ledger client: %s", err)
 	}
 
-	w.Write(utils.QueryBlockByNumber(client, blockID))
+	w.Write(utils.QueryBlockByNumber(client, blockID, r.URL.Query().Get("peer")))
 }
 
 func getTransactionByID(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +187,20 @@ func getTransactionByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Failed to create new ledger client: %s", err)
 	}
-	res := utils.QueryTransactionByID(client, vars["transactionID"])
+	res := utils.QueryTransactionByID(client, vars["transactionID"], r.URL.Query().Get("peer"))
+	w.Write(res)
+}
+
+func getChainInfo(w http.ResponseWriter, r *http.Request) {
+	log.Print("================ GET CHANNEL INFORMATION ======================")
+	vars := mux.Vars(r)
+	username := r.Header.Get("username")
+	orgName := r.Header.Get("orgName")
+	channelContext := hfc.Sdk.ChannelContext(vars["channelName"], fabsdk.WithUser(username), fabsdk.WithOrg(orgName))
+	client, err := ledger.New(channelContext)
+	if err != nil {
+		log.Printf("Failed to create new ledger client: %s", err)
+	}
+	res := utils.QueryChainInfo(client, r.URL.Query().Get("peer"))
 	w.Write(res)
 }
