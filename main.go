@@ -149,14 +149,8 @@ func invokeCC(w http.ResponseWriter, r *http.Request) {
 	body := invokeBody{}
 	decoder.Decode(&body)
 	client := utils.GetClient(hfc.Sdk, vars["channelName"], username, orgName)
-	txid := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args), body.Peers)
-	res := response{}
-	res.TxID = txid
-	out, err := json.Marshal(res)
-	if err != nil {
-		log.Printf("Marshal res error: %s", err.Error())
-	}
-	w.Write(out)
+	res := utils.ExecuteCC(client, vars["chaincodeName"], body.Fcn, utils.GetArgs(body.Args), body.Peers)
+	w.Write(res)
 }
 
 func getBlockByNumber(w http.ResponseWriter, r *http.Request) {
