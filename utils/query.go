@@ -7,6 +7,7 @@ import (
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/ledger"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 	pb "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/peer"
@@ -61,5 +62,35 @@ func QueryChainInfo(client *ledger.Client, endpoint string) []byte {
 	bci.CurrentBlockHash = fmt.Sprintf("%x", blockchainInfo.BCI.CurrentBlockHash)
 	bci.PreviousBlockHash = fmt.Sprintf("%x", blockchainInfo.BCI.PreviousBlockHash)
 	res, _ := json.Marshal(bci)
+	return res
+}
+
+// QueryInstalledChaincodes query installed chaincode - must call with Admin context
+func QueryInstalledChaincodes(client *resmgmt.Client, endpoint string) []byte {
+	chaincodeQueryRes, err := client.QueryInstalledChaincodes(resmgmt.WithTargetEndpoints(endpoint))
+	if err != nil {
+		log.Fatalf("Failed to QueryInstalledChaincodes: %s", err)
+	}
+	res, _ := json.Marshal(chaincodeQueryRes)
+	return res
+}
+
+// QueryInstantiatedChaincodes query instantiated chaincode - must call with Admin context
+func QueryInstantiatedChaincodes(client *resmgmt.Client, channelName string, endpoint string) []byte {
+	chaincodeQueryRes, err := client.QueryInstantiatedChaincodes(channelName, resmgmt.WithTargetEndpoints(endpoint))
+	if err != nil {
+		log.Fatalf("Failed to QueryInstantiatedChaincodes: %s", err)
+	}
+	res, _ := json.Marshal(chaincodeQueryRes)
+	return res
+}
+
+// QueryChannels query channels - must call with Admin context
+func QueryChannels(client *resmgmt.Client, endpoint string) []byte {
+	channelQueryRes, err := client.QueryChannels(resmgmt.WithTargetEndpoints(endpoint))
+	if err != nil {
+		log.Fatalf("Failed to QueryChannels: %s", err)
+	}
+	res, _ := json.Marshal(channelQueryRes)
 	return res
 }

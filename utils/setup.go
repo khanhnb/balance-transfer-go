@@ -23,14 +23,14 @@ type FabricSetup struct {
 	Sdk               *fabsdk.FabricSDK
 	RegistrarUsername string
 	RegistrarPassword string
-	MspClient         *clientMSP.Client
-	ChannelID         string
+	//MspClient         *clientMSP.Client
+	ChannelID string
 }
 
 // Init reads config file, setup client, CA
 func (hfc *FabricSetup) Init() {
 	hfc.Sdk = hfc.setupSDK(hfc.ConfigFileName)
-	// hfc.cleanupUserData()
+	hfc.cleanupUserData()
 	hfc.setupCA()
 }
 
@@ -44,6 +44,7 @@ func (hfc *FabricSetup) setupSDK(configFileName string) *fabsdk.FabricSDK {
 }
 
 func (hfc *FabricSetup) setupCA() {
+	log.Print("Enroll registrar")
 	ctxProvider := hfc.Sdk.Context()
 	mspClient, err := clientMSP.New(ctxProvider)
 	registrarEnrollID, registrarEnrollSecret := hfc.getRegistrarEnrollmentCredentials(ctxProvider)
@@ -52,7 +53,7 @@ func (hfc *FabricSetup) setupCA() {
 	if err != nil {
 		log.Fatalf("enroll registrar failed: %v", err)
 	}
-	hfc.MspClient = mspClient
+	//hfc.MspClient = mspClient
 }
 
 func (hfc *FabricSetup) cleanupUserData() {

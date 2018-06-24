@@ -212,7 +212,32 @@ channels:
 organizations:
   org1:
     mspid: Org1MSP
+    users:
+      AdminOrg1:
+        key:
+          pem: |
+            -----BEGIN PRIVATE KEY-----
+            MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgNmsvQQm4nwrxOKFX
+            UNfLPgjNm+FtYu3vb6OZ9q/5GbChRANCAAQKZvNQOjMissqOnc4DMi1IbubsWXDv
+            qtPxU7wTqi2ULDEq0FGQ+lkvueisLc2yPITff0nk7ilcKqEgClDJFGxG
+            -----END PRIVATE KEY-----
 
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICGTCCAb+gAwIBAgIQKKKdQSzsDoUYn/LPAuRWGTAKBggqhkjOPQQDAjBzMQsw
+            CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+            YW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu
+            b3JnMS5leGFtcGxlLmNvbTAeFw0xNzA2MjMxMjMzMTlaFw0yNzA2MjExMjMzMTla
+            MFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T
+            YW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw
+            EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECmbzUDozIrLKjp3OAzItSG7m7Flw76rT
+            8VO8E6otlCwxKtBRkPpZL7norC3NsjyE339J5O4pXCqhIApQyRRsRqNNMEswDgYD
+            VR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgDnKSJOiz8xeE
+            yKk8W4729MHJHZ5uV3xFwzFjYJ/kABEwCgYIKoZIzj0EAwIDSAAwRQIhALT02pc/
+            yfE/4wUJfUBQ32GifUEh8JktAXzL/73S0rjYAiACNSp6zAQBX9SBxTOGMk4cGGAy
+            CKqf8052NVUs2CvPzA==
+            -----END CERTIFICATE-----
     # This org's MSP store (absolute path or relative to client.cryptoconfig)
     cryptoPath:  peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
 
@@ -235,7 +260,31 @@ organizations:
   # fabric-ca registrar enroll ID and secret, etc.
   org2:
     mspid: Org2MSP
-
+    users:
+      AdminOrg2:
+        key:
+          pem: |
+            -----BEGIN PRIVATE KEY-----
+            MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgHa4xvmGVQJV5wrMj
+            KttcA0hh/Yz0dezmXlRLjNk9HyahRANCAATCyh15tcTe05OGM2loOBmIS6MjY647
+            Od9NqN+5tdlPC6K0eyC+X3RYGCC3i+F1D4wv0BuBNqOoT5d7mT1FRK22
+            -----END PRIVATE KEY-----
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICGjCCAcCgAwIBAgIRAIUbkOONvaq2DLJr9qZbDKwwCgYIKoZIzj0EAwIwczEL
+            MAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG
+            cmFuY2lzY28xGTAXBgNVBAoTEG9yZzIuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh
+            Lm9yZzIuZXhhbXBsZS5jb20wHhcNMTcwNjIzMTIzMzE5WhcNMjcwNjIxMTIzMzE5
+            WjBbMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMN
+            U2FuIEZyYW5jaXNjbzEfMB0GA1UEAwwWQWRtaW5Ab3JnMi5leGFtcGxlLmNvbTBZ
+            MBMGByqGSM49AgEGCCqGSM49AwEHA0IABMLKHXm1xN7Tk4YzaWg4GYhLoyNjrjs5
+            302o37m12U8LorR7IL5fdFgYILeL4XUPjC/QG4E2o6hPl3uZPUVErbajTTBLMA4G
+            A1UdDwEB/wQEAwIHgDAMBgNVHRMBAf8EAjAAMCsGA1UdIwQkMCKAIKfUfvpGproH
+            cwyFD+0sE3XfJzYNcif0jNwvgOUFZ4AFMAoGCCqGSM49BAMCA0gAMEUCIQDa1k6R
+            +luypvng6JMSKIyibptkwICToEAZlDqLeD+k1gIgGFXm1+p1QqxViOa+c1dUvjl0
+            m1UCqGDwNTHDm5mO+es=
+            -----END CERTIFICATE-----
     # This org's MSP store (absolute path or relative to client.cryptoconfig)
     cryptoPath:  peerOrganizations/org2.example.com/users/{username}@org2.example.com/msp
 

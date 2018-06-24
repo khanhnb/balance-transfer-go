@@ -56,7 +56,7 @@ go run main.go
 
 * Register and enroll new users in Organization - **Org1**:
 
-`curl -s -X POST http://localhost:4000/users -H "content-type: application/x-www-form-urlencoded" -d 'username=Jim&orgName=org1'`
+`curl -s -X POST http://localhost:4000/users -H "content-type: application/x-www-form-urlencoded" -d 'username=Jim&orgName=org1&secret=123'`
 
 **OUTPUT:**
 
@@ -121,11 +121,33 @@ curl -s -X GET \
   -H "content-type: application/json"
 ```
 
-### Query Installed chaincodes (updating)
+### Query Installed chaincodes
 
+```
+curl -s -X GET \
+  "http://localhost:4000/chaincodes?peer=peer0.org1.example.com" \
+  -H "authorization: <put JSON Web Token here>" \
+  -H "content-type: application/json"
+```
 
-### Query Instantiated chaincodes (updating)
+### Query Instantiated chaincodes
 
+```
+curl -s -X GET \
+  "http://localhost:4000/channels/{channelName}/chaincodes?peer=peer0.org1.example.com" \
+  -H "authorization: <put JSON Web Token here>" \
+  -H "content-type: application/json"
+```
 
-### Query Channels (updating)
+### Query Channels
 
+```
+curl -s -X GET \
+  "http://localhost:4000/channels?peer=peer0.org1.example.com" \
+  -H "authorization: <put JSON Web Token here>" \
+  -H "content-type: application/json"
+```
+
+## Reference
+* [cendhu/fetch-block](https://github.com/cendhu/fetch-block)
+* [hyperledger/fabric-samples/balance-transfer](https://github.com/hyperledger/fabric-samples/tree/release-1.1/balance-transfer)

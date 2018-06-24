@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/balance-transfer-go/utils"
@@ -14,6 +15,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/ledger"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 )
 
@@ -40,9 +42,9 @@ func main() {
 	r.Handle("/channels/{channelName}/blocks/{blockID}", authMiddleware(http.HandlerFunc(getBlockByNumber))).Methods("GET")
 	r.Handle("/channels/{channelName}/transactions/{transactionID}", authMiddleware(http.HandlerFunc(getTransactionByID))).Methods("GET")
 	r.Handle("/channels/{channelName}", authMiddleware(http.HandlerFunc(getChainInfo))).Methods("GET")
-	//r.HandleFunc("/channels/{channelName}", getChainInfo).Methods("GET")
-	//r.HandleFunc("/channels/{channelName}/transactions/{transactionID}", getTransactionByID).Methods("GET")
-	//r.HandleFunc("/channels/{channelName}/blocks/{blockID}", getBlockByNumber).Methods("GET")
+	r.Handle("/chaincodes", authMiddleware(http.HandlerFunc(getInstalledChaincodes))).Methods("GET")
+	r.Handle("/channels/{channelName}/chaincodes", authMiddleware(http.HandlerFunc(getInstantiatedChaincodes))).Methods("GET")
+	r.Handle("/channels", authMiddleware(http.HandlerFunc(getChannels))).Methods("GET")
 	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
 }
 
@@ -88,15 +90,16 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.Form.Get("username")
 	orgName := r.Form.Get("orgName")
+	secret := r.Form.Get("secret")
 	if username != "" && orgName != "" {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"username": username,
 			"orgName":  orgName,
-			"exp":      time.Now().Unix() + 36000,
+			"exp":      time.Now().Unix() + 360000,
 		})
 		tokenString, err := token.SignedString(hfc.Secret)
 		fmt.Println(tokenString, err)
-		message, success := utils.GetRegisteredUser(username, orgName, hfc.IdentityTypeUser, hfc.MspClient)
+		message, success := utils.GetRegisteredUser(strings.ToLower(username), strings.ToLower(orgName), secret, hfc.IdentityTypeUser, hfc.Sdk)
 		res := response{
 			Success: success,
 			Message: message,
@@ -197,4 +200,38 @@ func getChainInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	res := utils.QueryChainInfo(client, r.URL.Query().Get("peer"))
 	w.Write(res)
+}
+
+func getInstalledChaincodes(w http.ResponseWriter, r *http.Request) {
+	log.Print("================ GET INSTALLED CHAINCODES ======================")
+	org1AdminClientContext := hfc.Sdk.Context(fabsdk.WithUser("AdminOrg1"), fabsdk.WithOrg("Org1"))
+	client, err := resmgmt.New(org1AdminClientContext)
+	if err != nil {
+		log.Fatalf("Failed to create new resource management client: %s", err)
+	}
+	out := utils.QueryInstalledChaincodes(client, r.URL.Query().Get("peer"))
+	w.Write(out)
+}
+
+func getInstantiatedChaincodes(w http.ResponseWriter, r *http.Request) {
+	log.Print("================ GET INSTANTIATED CHAINCODES ======================")
+	vars := mux.Vars(r)
+	org1AdminClientContext := hfc.Sdk.Context(fabsdk.WithUser("AdminOrg1"), fabsdk.WithOrg("Org1"))
+	client, err := resmgmt.New(org1AdminClientContext)
+	if err != nil {
+		log.Fatalf("Failed to create new resource management client: %s", err)
+	}
+	out := utils.QueryInstantiatedChaincodes(client, vars["channelName"], r.URL.Query().Get("peer"))
+	w.Write(out)
+}
+
+func getChannels(w http.ResponseWriter, r *http.Request) {
+	log.Print("================ GET CHANNELS ======================")
+	org1AdminClientContext := hfc.Sdk.Context(fabsdk.WithUser("AdminOrg1"), fabsdk.WithOrg("Org1"))
+	client, err := resmgmt.New(org1AdminClientContext)
+	if err != nil {
+		log.Fatalf("Failed to create new resource management client: %s", err)
+	}
+	out := utils.QueryChannels(client, r.URL.Query().Get("peer"))
+	w.Write(out)
 }

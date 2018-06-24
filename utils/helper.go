@@ -21,40 +21,53 @@ func GetClient(sdk *fabsdk.FabricSDK, channelName string, userName string, orgNa
 }
 
 // GetRegisteredUser get registered user. If user is not enrolled, enroll new user
-func GetRegisteredUser(username, orgName, identityTypeUser string, mspClient *msp.Client) (string, bool) {
-	testAttributes := []msp.Attribute{
-		{
-			Name:  integration.GenerateRandomID(),
-			Value: fmt.Sprintf("%s:ecert", integration.GenerateRandomID()),
-			ECert: true,
-		},
-		{
-			Name:  integration.GenerateRandomID(),
-			Value: fmt.Sprintf("%s:ecert", integration.GenerateRandomID()),
-			ECert: true,
-		},
+func GetRegisteredUser(username, orgName, secret, identityTypeUser string, sdk *fabsdk.FabricSDK) (string, bool) {
+	ctxProvider := sdk.Context(fabsdk.WithOrg(orgName))
+	mspClient, err := msp.New(ctxProvider)
+	if err != nil {
+		log.Fatalf("Failed to create msp client: %s", err.Error())
 	}
+	signingIdentity, err := mspClient.GetSigningIdentity(username)
+	if err != nil {
+		log.Printf("Check if user %s is enrolled: %s", username, err.Error())
+		testAttributes := []msp.Attribute{
+			{
+				Name:  integration.GenerateRandomID(),
+				Value: fmt.Sprintf("%s:ecert", integration.GenerateRandomID()),
+				ECert: true,
+			},
+			{
+				Name:  integration.GenerateRandomID(),
+				Value: fmt.Sprintf("%s:ecert", integration.GenerateRandomID()),
+				ECert: true,
+			},
+		}
 
-	// Register the new user
-	enrollmentSecret, err := mspClient.Register(&msp.RegistrationRequest{
-		Name:       username,
-		Type:       identityTypeUser,
-		Attributes: testAttributes,
-		// Affiliation is mandatory. "org1" and "org2" are hardcoded as CA defaults
-		// See https://github.com/hyperledger/fabric-ca/blob/release/cmd/fabric-ca-server/config.go
-		Affiliation: "org1",
-	})
-	// err if user is already enrolled
-	if err == nil {
-		// Enroll the new user
-		err = mspClient.Enroll(username, msp.WithSecret(enrollmentSecret))
-		log.Printf("secret: %s", enrollmentSecret)
+		// Register the new user
+		identity, err := mspClient.GetIdentity(username)
+		if true {
+			log.Printf("User %s does not exist, registering new user", username)
+			_, err = mspClient.Register(&msp.RegistrationRequest{
+				Name:        username,
+				Type:        identityTypeUser,
+				Attributes:  testAttributes,
+				Affiliation: orgName,
+				Secret:      secret,
+			})
+		} else {
+			log.Printf("Identity: %s", identity.Secret)
+		}
+		//enroll user
+		err = mspClient.Enroll(username, msp.WithSecret(secret))
 		if err != nil {
 			log.Printf("enroll %s failed: %v", username, err)
 			return "failed " + err.Error(), false
 		}
+
+		return username + " enrolled Successfully", true
 	}
-	return username + " enrolled Successfully", true
+	log.Printf("%s: %s", signingIdentity.Identifier().ID, string(signingIdentity.EnrollmentCertificate()[:]))
+	return username + " already enrolled", true
 }
 
 // GetArgs get [][]byte args from string array
