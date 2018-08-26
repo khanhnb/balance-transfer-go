@@ -56,7 +56,9 @@ go run main.go
 
 * Register and enroll new users in Organization - **Org1**:
 
-`curl -s -X POST http://localhost:4000/users -H "content-type: application/x-www-form-urlencoded" -d 'username=Jim&orgName=org1&secret=123'`
+```
+curl -s -X POST http://localhost:4000/users -H "content-type: application/x-www-form-urlencoded" -d 'username=Jim&orgName=org1&secret=123'
+```
 
 **OUTPUT:**
 
@@ -75,7 +77,7 @@ The response contains the success/failure status, an **enrollment Secret** and a
 ```
 curl -s -X POST \
   http://localhost:4000/channels/mychannel/chaincodes/mycc \
-  -H "authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
+  -H "authorization: <put JSON Web Token here>" \
   -H "content-type: application/json" \
   -d '{
 	"peers": ["peer0.org2.example.com","peer1.org2.example.com"],
@@ -90,7 +92,7 @@ curl -s -X POST \
 ```
 curl -s -X GET \
   "http://localhost:4000/channels/mychannel/chaincodes/mycc?peer=peer0.org1.example.com&fcn=query&args=%5B%22a%22%5D" \
-  -H "authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
+  -H "authorization: <put JSON Web Token here>" \
   -H "content-type: application/json"
 ```
 
